@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block head_extra %}
+<style>
+    .hero-section {
+        padding: 6rem 0;
+        background: linear-gradient(135deg, #6e8efb, #a777e3);
+        color: white;
+        text-align: center;
+    }
+    .hero-section h1 {
+        font-size: 3.5rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    .hero-section .lead {
+        font-size: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .hero-section .btn-custom {
+        font-size: 1.2rem;
+        padding: 0.8rem 2rem;
+        border-radius: 50px;
+        transition: transform 0.2s ease-in-out;
+    }
+    .hero-section .btn-custom:hover {
+        transform: translateY(-3px);
+    }
+    .features-section {
+        padding: 4rem 0;
+    }
+    .feature-icon {
+        font-size: 3rem;
+        color: #6e8efb;
+        margin-bottom: 1rem;
+    }
+    .stats-counter {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #a777e3;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-section animate__animated animate__fadeIn">
+    <div class="container">
+        <h1 class="display-4">Combat Misinformation with AI</h1>
+        <p class="lead">Detect fake news quickly and reliably. Submit an article, URL, or text file and let our advanced AI analyze its authenticity.</p>
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('main.submit_news') }}" class="btn btn-light btn-lg btn-custom shadow"><i class="fas fa-search me-2"></i> Analyze News Now</a>
+        {% else %}
+            <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg btn-custom shadow me-2"><i class="fas fa-user-plus me-2"></i> Get Started</a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg btn-custom"><i class="fas fa-sign-in-alt me-2"></i> Login</a>
+        {% endif %}
+    </div>
+</div>
+
+<section class="features-section text-center">
+    <div class="container">
+        <h2 class="mb-5">Why Choose Us?</h2>
+        <div class="row">
+            <div class="col-md-4 mb-4 animate__animated animate__fadeInUp" data-wow-delay="0.1s">
+                <div class="feature-icon"><i class="fas fa-brain"></i></div>
+                <h4>Advanced AI</h4>
+                <p class="text-muted">Utilizing state-of-the-art machine learning models for high accuracy.</p>
+            </div>
+            <div class="col-md-4 mb-4 animate__animated animate__fadeInUp" data-wow-delay="0.2s">
+                <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+                <h4>Fast Analysis</h4>
+                <p class="text-muted">Get results in seconds. No more waiting around.</p>
+            </div>
+            <div class="col-md-4 mb-4 animate__animated animate__fadeInUp" data-wow-delay="0.3s">
+                <div class="feature-icon"><i class="fas fa-share-alt"></i></div>
+                <h4>Easy Sharing</h4>
+                <p class="text-muted">Share your findings instantly on social media or download as PDF.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="stats-section py-5 bg-light text-center">
+    <div class="container">
+        <h2 class="mb-5">Our Impact So Far</h2>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <div class="stats-counter" id="users-count">0</div>
+                <p class="text-muted">Registered Users</p>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="stats-counter" id="articles-analyzed">0</div>
+                <p class="text-muted">Articles Analyzed</p>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="stats-counter" id="fake-detected">0</div>
+                <p class="text-muted">Fake News Detected</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Animated counter function
+    function animateValue(obj, start, end, duration) {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString();
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Replace with actual data fetching or pass from backend if needed
+        const usersCount = document.getElementById('users-count');
+        const articlesAnalyzed = document.getElementById('articles-analyzed');
+        const fakeDetected = document.getElementById('fake-detected');
+
+        if(usersCount) animateValue(usersCount, 0, 1250, 2000); // Dummy data
+        if(articlesAnalyzed) animateValue(articlesAnalyzed, 0, 5800, 2000); // Dummy data
+        if(fakeDetected) animateValue(fakeDetected, 0, 2100, 2000); // Dummy data
+    });
+</script>
+{% endblock %}

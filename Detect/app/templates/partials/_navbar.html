@@ -1,0 +1,52 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('main.index') }}">
+            <i class="fas fa-shield-alt"></i> Fake News Detector
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link {{ 'active' if request.endpoint == 'main.index' else '' }}" aria-current="page" href="{{ url_for('main.index') }}"><i class="fas fa-home"></i> Home</a>
+                </li>
+                {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active' if request.endpoint == 'main.submit_news' else '' }}" href="{{ url_for('main.submit_news') }}"><i class="fas fa-plus-circle"></i> Submit News</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active' if request.endpoint == 'main.history' else '' }}" href="{{ url_for('main.history') }}"><i class="fas fa-history"></i> History</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {{ 'active' if request.endpoint in ['main.profile', 'admin.dashboard'] else '' }}" href="#" id="navbarDropdownUser" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="{{ url_for('static', filename='avatars/' + (current_user.avatar if current_user.avatar else 'default_avatar.png')) }}" alt="User Avatar" class="rounded-circle me-1" style="width: 25px; height: 25px; object-fit: cover;">
+                            {{ current_user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdownUser">
+                            <li><a class="dropdown-item" href="{{ url_for('main.profile') }}"><i class="fas fa-user-circle me-2"></i>Profile</a></li>
+                            {% if current_user.is_admin %}
+                                <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Admin Panel</a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active' if request.endpoint == 'auth.login' else '' }}" href="{{ url_for('auth.login') }}"><i class="fas fa-sign-in-alt"></i> Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active' if request.endpoint == 'auth.register' else '' }}" href="{{ url_for('auth.register') }}"><i class="fas fa-user-plus"></i> Register</a>
+                    </li>
+                {% endif %}
+                <li class="nav-item ms-lg-2">
+                    <button id="theme-toggle" class="btn btn-outline-light btn-sm" title="Toggle theme">
+                        <i class="fas fa-sun" id="theme-icon-sun"></i>
+                        <i class="fas fa-moon d-none" id="theme-icon-moon"></i>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

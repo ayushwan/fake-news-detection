@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% from "macros/_form_macros.html" import render_field %}
+
+{% block head_extra %}
+<style>
+    .submission-form-container {
+        max-width: 700px;
+        margin: auto;
+    }
+    .nav-pills .nav-link.active {
+        background-color: #0d6efd;
+        color: white;
+    }
+    .tab-pane {
+        padding-top: 20px;
+    }
+    #loading-spinner {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.7);
+        z-index: 1056; /* Higher than navbar */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="submission-form-container card shadow-sm p-4">
+    <h2 class="text-center mb-4"><i class="fas fa-newspaper me-2"></i>Analyze News Article</h2>
+
+    <!-- Nav Pills for submission type -->
+    <ul class="nav nav-pills nav-fill mb-3" id="submissionTypeTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="text-tab" data-bs-toggle="tab" data-bs-target="#text-pane" type="button" role="tab" aria-controls="text-pane" aria-selected="true"><i class="fas fa-paragraph me-1"></i> Plain Text</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="url-tab" data-bs-toggle="tab" data-bs-target="#url-pane" type="button" role="tab" aria-controls="url-pane" aria-selected="false"><i class="fas fa-link me-1"></i> News URL</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="file-tab" data-bs-toggle="tab" data-bs-target="#file-pane" type="button" role="tab" aria-controls="file-pane" aria-selected="false"><i class="fas fa-file-alt me-1"></i> Upload .txt File</button>
+        </li>
+    </ul>
+
+    <form method="POST" action="{{ url_for('main.submit_news') }}" enctype="multipart/form-data" id="newsSubmissionForm" novalidate>
+        {{ csrf_token() }} <!-- If using Flask-WTF CSRF protection -->
+        <input type="hidden" name="submission_type" id="submission_type" value="text">
+
+        <div class="tab-content" id="submissionTypeTabsContent">
+            <!-- Plain Text Input -->
+            <div class="tab-pane fade show active" id="text-pane" role="tabpanel" aria-labelledby="text-tab">
+                <div class="mb-3">
+                    <label for="news_text" class="form-label">Enter News Article Text:</label>
+                    <textarea class="form-control" id="news_text" name="news_text" rows="10" placeholder="Paste the full news article text here..."></textarea>
+                    <div class="invalid-feedback">Please enter the news text.</div>
+                </div>
+            </div>
+
+            <!-- URL Input -->
+            <div class="tab-pane fade" id="url-pane" role="tabpanel" aria-labelledby="url-tab">
+                <div class="mb-3">
+                    <label for="news_url" class="form-label">Enter News Article URL:</label>
+                    <input type="url" class="form-control" id="news_url" name="news_url" placeholder="https://example.com/news-article">
+                    <div class="invalid-feedback">Please enter a valid URL.</div>
+                </div>
+            </div>
+
+            <!-- File Upload Input -->
+            <div class="tab-pane fade" id="file-pane" role="tabpanel" aria-labelledby="file-tab">
+                <div class="mb-3">
+                    <label for="news_file" class="form-label">Upload a .txt File:</label>
+                    <input class="form-control" type="file" id="news_file" name="news_file" accept=".txt">
+                    <div class="invalid-feedback">Please select a .txt file.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-grid mt-4">
+            <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-cogs me-2"></i>Analyze Now</button>
+        </div>
+    </form>
+</div>
+
+<!-- Loading Spinner -->
+<div id="loading-spinner" class="d-none">
+    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="ms-3 fs-5 text-primary">Analyzing, please wait...</p>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const submissionTypeTabs = document.querySelectorAll('#submissionTypeTabs button[data-bs-toggle="tab"]');
+        const submissionTypeInput = document.getElementById('submission_type');
+        const newsSubmissionForm = document.getElementById('newsSubmissionForm');
+        const loadingSpinner = document.getElementById('loading-spinner');
+
+        const newsTextInput = document.getElementById('news_text');
+        const newsUrlInput = document.getElementById('news_url');
+        const newsFileInput = document.getElementById('news_file');
+
+        submissionTypeTabs.forEach(tab => {
+            tab.addEventListener('shown.bs.tab', function (event) {
+                const targetPaneId = event.target.getAttribute('data-bs-target');
+                if (targetPaneId === '#text-pane') {
+                    submissionTypeInput.value = 'text';
+                } else if (targetPaneId === '#url-pane') {
+                    submissionTypeInput.value = 'url';
+                } else if (targetPaneId === '#file-pane') {
+                    submissionTypeInput.value = 'file';
+                }
+                // Clear validation states on tab change
+                clearAllValidations();
+            });
+        });
+
+        newsSubmissionForm.addEventListener('submit', function (event) {
+            // Basic client-side validation
+            let isValid = true;
+            clearAllValidations(); // Clear previous validation messages
+
+            const currentSubmissionType = submissionTypeInput.value;
+
+            if (currentSubmissionType === 'text') {
+                if (!newsTextInput.value.trim() || newsTextInput.value.trim().length < 10) {
+                    newsTextInput.classList.add('is-invalid');
+                    isValid = false;
+                }
+            } else if (currentSubmissionType === 'url') {
+                if (!newsUrlInput.value.trim()) {
+                    newsUrlInput.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    try {
+                        new URL(newsUrlInput.value);
+                    } catch (_) {
+                        newsUrlInput.classList.add('is-invalid');
+                        isValid = false;
+                    }
+                }
+            } else if (currentSubmissionType === 'file') {
+                if (!newsFileInput.files || newsFileInput.files.length === 0) {
+                    newsFileInput.classList.add('is-invalid');
+                    isValid = false;
+                } else if (newsFileInput.files[0].type !== 'text/plain') {
+                    newsFileInput.classList.add('is-invalid');
+                    // Add a specific message for file type
+                    let feedback = newsFileInput.nextElementSibling;
+                    if(feedback && feedback.classList.contains('invalid-feedback')) {
+                        feedback.textContent = 'Invalid file type. Only .txt files are allowed.';
+                    }
+                    isValid = false;
+                }
+            }
+
+            if (!isValid) {
+                event.preventDefault();
+                event.stopPropagation();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: 'Please check your input and try again.',
+                    confirmButtonColor: '#0d6efd'
+                });
+            } else {
+                // Show loading spinner on valid submission
+                if(loadingSpinner) loadingSpinner.classList.remove('d-none');
+            }
+        });
+
+        function clearAllValidations() {
+            [newsTextInput, newsUrlInput, newsFileInput].forEach(input => {
+                if(input) {
+                    input.classList.remove('is-invalid');
+                    // Reset file type specific message if any
+                    if(input.type === 'file'){
+                        let feedback = input.nextElementSibling;
+                        if(feedback && feedback.classList.contains('invalid-feedback')) {
+                           feedback.textContent = 'Please select a .txt file.'; // Reset to default
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

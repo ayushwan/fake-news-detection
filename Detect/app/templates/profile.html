@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block head_extra %}
+<style>
+    .profile-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .profile-avatar {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 5px solid #fff;
+        box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        margin-bottom: 1rem;
+    }
+    .stats-card {
+        background-color: #f8f9fa;
+        border-radius: .5rem;
+        padding: 1.5rem;
+        text-align: center;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .stats-card h4 {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #0d6efd;
+    }
+    .stats-card p {
+        color: #6c757d;
+        margin-bottom: 0;
+    }
+    .ratio-bar-container {
+        height: 20px;
+        background-color: #e9ecef;
+        border-radius: .25rem;
+        overflow: hidden;
+        margin-top: 0.5rem;
+    }
+    .ratio-bar {
+        height: 100%;
+        float: left;
+        text-align: center;
+        color: white;
+        font-size: 0.8rem;
+        line-height: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="profile-header animate__animated animate__fadeInDown">
+        <img src="{{ url_for('static', filename='avatars/' + (user.avatar if user.avatar else 'default_avatar.png')) }}" alt="User Avatar" class="profile-avatar">
+        <h2>{{ user.username }}</h2>
+        <p class="text-muted">{{ user.email }}</p>
+        <p class="text-muted"><small>Member since: {{ user.created_at.strftime('%B %d, %Y') }}</small></p>
+        <!-- Add edit profile button if functionality is implemented -->
+        <!-- <a href="#" class="btn btn-outline-primary btn-sm">Edit Profile</a> -->
+    </div>
+
+    <h3 class="text-center mb-4">Your Statistics</h3>
+    <div class="row justify-content-center animate__animated animate__fadeInUp">
+        <div class="col-md-4">
+            <div class="stats-card">
+                <h4>{{ stats.total_submissions }}</h4>
+                <p><i class="fas fa-newspaper me-1"></i> Total Submissions</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card">
+                <h4 class="text-danger">{{ stats.fake_submissions }}</h4>
+                <p><i class="fas fa-times-circle me-1 text-danger"></i> Fake News Reports</p>
+                <div class="ratio-bar-container" title="{{ stats.fake_ratio }}% Fake">
+                    <div class="ratio-bar bg-danger" style="width: {{ stats.fake_ratio }}%"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card">
+                <h4 class="text-success">{{ stats.real_submissions }}</h4>
+                <p><i class="fas fa-check-circle me-1 text-success"></i> Real News Reports</p>
+                <div class="ratio-bar-container" title="{{ stats.real_ratio }}% Real">
+                    <div class="ratio-bar bg-success" style="width: {{ stats.real_ratio }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{{ url_for('main.history') }}" class="btn btn-primary"><i class="fas fa-history me-1"></i> View Full Submission History</a>
+    </div>
+
+</div>
+{% endblock %}
