@@ -1,3 +1,0 @@
-Placeholder for trained TF-IDF vectorizer.
-This file should be replaced with an actual .pkl file generated after training a scikit-learn TfidfVectorizer.
-Example: joblib.dump(vectorizer, 'vectorizer.pkl')
